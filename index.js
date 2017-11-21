@@ -17,8 +17,8 @@ setTimeout(function (){
     var G = [];
 
     for(var i = 0; i < population; i++){
-        // G.push(new Architect.Perceptron(16, 14, 4));
-        G.push(new Architect.Liquid(16, 160, 4, 240, 16*5));
+        G.push(new Architect.Perceptron(16, 14, 1));
+        // G.push(new Architect.Liquid(16, 160, 1, 240, 16*5));
     }
 
     generationCount ++;
@@ -55,6 +55,22 @@ setTimeout(function (){
         return allDead;
     }
 
+    function getCellsNumList (_win)
+    {
+        var theCells = _win.G2048.grid.cells;
+        var theInput = [];
+        for(var i = 0; i < 4; i++){
+            for(var j = 0; j < 4; j++){
+                var pushInArray = 0;
+                if(theCells[i][j]){
+                    pushInArray = theCells[i][j].value;
+                }
+                theInput.push(pushInArray);
+            }
+        }
+        return theInput;
+    }
+
     var frameLoopHL = 0;
     function startAIFrame()
     {
@@ -63,54 +79,53 @@ setTimeout(function (){
             eachIframe(function (_win, _index)
             {
                 if(!G_deaded[_index]){
-                    var theCells = _win.G2048.grid.cells;
-                    
-                    var theInput = [];
-                    for(var i = 0; i < 4; i++){
-                        for(var j = 0; j < 4; j++){
-                            var pushInArray = 0;
-                            if(theCells[i][j]){
-                                pushInArray = theCells[i][j].value;
-                            }
-                            theInput.push(pushInArray);
-                        }
+                    var theInput = getCellsNumList(_win);
+                    var res = G[_index].activate(theInput)[0];
+
+                    console.log(theInput, res);
+                    res *= 4;
+                    if(res >=0 && res <1 ){
+                        _win.G2048.move(0);
+                    }
+                    if(res >=1 && res <2 ){
+                        _win.G2048.move(1);
+                    }
+                    if(res >=2 && res <3 ){
+                        _win.G2048.move(2);
+                    }
+                    if(res >=3 && res <4 ){
+                        _win.G2048.move(3);
                     }
 
-                    // var res = G[_index].compute(theInput)[0];
-
-                    // res *= 4;
-                    // if(res >=0 && res <1 ){
-                    //     _win.G2048.move(0);
+                    // var res = G[_index].activate(theInput);
+                    // var resObjList = [];
+                    // for(var i = 0; i < res.length; i++){
+                    //     resObjList.push({index: i, value: res[i]});
                     // }
-                    // if(res >=1 && res <2 ){
-                    //     _win.G2048.move(1);
-                    // }
-                    // if(res >=2 && res <3 ){
-                    //     _win.G2048.move(2);
-                    // }
-                    // if(res >=3 && res <4 ){
-                    //     _win.G2048.move(3);
-                    // }
-
-                    var res = G[_index].activate(theInput);
-                    var resObjList = [];
-                    for(var i = 0; i < res.length; i++){
-                        resObjList.push({index: i, value: res[i]});
-                    }
-                    resObjList.sort(function (a, b)
-                    {
-                        if(a.value > b.value){
-                            return false;
-                        }
-                        return true;
-                    })
-                    console.log(resObjList);
-                    _win.G2048.move(resObjList[0].index);
+                    // resObjList.sort(function (a, b)
+                    // {
+                    //     if(a.value > b.value){
+                    //         return false;
+                    //     }
+                    //     return true;
+                    // })
+                    // _win.G2048.move(resObjList[0].index);
                     
 
                     if(lastInputString[_index] == JSON.stringify(theInput)){
                         // G_deaded[_index] = 1;
-                        G_deaded[_index] = 2;
+                        // G_deaded[_index] = 2;
+                        G[_index].propagate(0.3, 
+                            [
+                                getCellsNumList(_win).pop() * _win.G2048.serialize().score / 10
+                            ]
+                        );
+                    }else{
+                        G[_index].propagate(0.3, 
+                            [
+                                getCellsNumList(_win).pop() * _win.G2048.serialize().score
+                            ]
+                        );
                     }
 
                     if(_win.G2048.serialize().over){
@@ -118,6 +133,8 @@ setTimeout(function (){
                     }
 
                     lastInputString[_index] = JSON.stringify(theInput);
+
+                    
 
                 }
             });
@@ -129,23 +146,10 @@ setTimeout(function (){
                 setTimeout(function ()
                 {
                     eachIframe(function (_win, _index){
-                        var theCells = _win.G2048.grid.cells;
-                        var theInput = [];
-                        for(var i = 0; i < 4; i++){
-                            for(var j = 0; j < 4; j++){
-                                var pushInArray = 0;
-                                if(theCells[i][j]){
-                                    pushInArray = theCells[i][j].value;
-                                }
-                                theInput.push(pushInArray);
-                            }
-                        }
+                        var theInput = getCellsNumList(_win);
                         theInput.sort();
                         G[_index].propagate(0.3, 
                             [
-                                theInput.pop() * _win.G2048.serialize().score,
-                                theInput.pop() * _win.G2048.serialize().score,
-                                theInput.pop() * _win.G2048.serialize().score,
                                 theInput.pop() * _win.G2048.serialize().score
                             ]
                         );
@@ -174,5 +178,5 @@ setTimeout(function (){
     setTimeout(function ()
     {
         startAIFrame();
-    }, 10000)
+    }, 5000)
 });
