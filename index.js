@@ -3,7 +3,7 @@ var ProjectName = 'Neuroevolution_2048';
 
 var Neuvol = new Neuroevolution({
     population:50,
-    network:[16, [12], 1],
+    network:[16, [14], 4],
     nbChild:25
 });
 
@@ -82,22 +82,22 @@ setTimeout(function (){
 
                     var res = G[_index].compute(theInput);
 
-                    res *= 4;
-                    if(res >=0 && res <1 ){
-                        _win.G2048.move(0);
+                    var resObjList = [];
+                    for(var i = 0; i < res.length; i++){
+                        resObjList.push({index: i, value: res[i]});
                     }
-                    if(res >=1 && res <2 ){
-                        _win.G2048.move(1);
-                    }
-                    if(res >=2 && res <3 ){
-                        _win.G2048.move(2);
-                    }
-                    if(res >=3 && res <4 ){
-                        _win.G2048.move(3);
-                    }
+                    resObjList.sort(function (a, b)
+                    {
+                        if(a.value > b.value){
+                            return false;
+                        }
+                        return true;
+                    })
+                    _win.G2048.move(resObjList[0].index);
+                    
 
                     if(lastInputString[_index] == JSON.stringify(theInput)){
-                        G_deaded[_index] = 1;
+                        G_deaded[_index] = 2;
                     }
 
                     if(_win.G2048.serialize().over){
@@ -126,6 +126,6 @@ setTimeout(function (){
                     lastInputString = [];
                 },1000);
             }
-        },300)
+        },100)
     }, 10000)
 });
