@@ -97,7 +97,7 @@ setTimeout(function (){
                     
 
                     if(lastInputString[_index] == JSON.stringify(theInput)){
-                        G_deaded[_index] = 2;
+                        G_deaded[_index] = 1;
                     }
 
                     if(_win.G2048.serialize().over){
