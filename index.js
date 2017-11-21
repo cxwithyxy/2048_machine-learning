@@ -1,131 +1,70 @@
+setTimeout(function (){
 
-var ProjectName = 'Neuroevolution_2048';
+    var ProjectName = 'Neuroevolution_2048';
 
-var Neuvol = new Neuroevolution({
-    population:50,
-    network:[16, [14, 14, 14, 14], 4]
-});
+    var Neuron = synaptic.Neuron,
+        Layer = synaptic.Layer,
+        Network = synaptic.Network,
+        Trainer = synaptic.Trainer,
+        Architect = synaptic.Architect;
 
-var generationCount = 0;
+    var population= 3;
 
-var G = null;
 
-if(localStorage.getItem(ProjectName)){
-    var savingData = JSON.parse(localStorage.getItem(ProjectName));
-    G = Neuvol.nextGeneration(savingData);
-    console.log('loaded');
-}else{
-    G = Neuvol.nextGeneration();
-}
-generationCount ++;
 
-/**
- * 初始化死亡列表
- */
-var G_deaded = [];
+    var generationCount = 0;
 
-/**
- * iframe
- */
-var iframeList = [];
+    var G = [];
 
-var lastInputString = [];
-
-/**
- * 操控每一个iframe
- */
-function eachIframe(_do)
-{
-    
-    for(var i = 0; i < iframeList.length; i++){
-        _do(iframeList[i].contentWindow, i);
+    for(var i = 0; i < population; i++){
+        // G.push(new Architect.Perceptron(16, 14, 4));
+        G.push(new Architect.Liquid(16, 160, 4, 240, 16*5));
     }
-}
 
-function isAllDead()
-{
-    var allDead = true;
-    eachIframe(function (_win, _index)
-    {
-        allDead = !!G_deaded[_index];
-    });
-    return allDead;
-}
+    generationCount ++;
 
-var frameLoopHL = 0;
-function startAIFrame()
-{
-    frameLoopHL = setInterval(function ()
+    /**
+     * 初始化死亡列表
+     */
+    var G_deaded = [];
+
+    /**
+     * iframe
+     */
+    var iframeList = [];
+
+    var lastInputString = [];
+
+    /**
+     * 操控每一个iframe
+     */
+    function eachIframe(_do)
     {
+        for(var i = 0; i < iframeList.length; i++){
+            _do(iframeList[i].contentWindow, i);
+        }
+    }
+
+    function isAllDead()
+    {
+        var allDead = true;
         eachIframe(function (_win, _index)
         {
-            if(!G_deaded[_index]){
-                var theCells = _win.G2048.grid.cells;
-                
-                var theInput = [];
-                for(var i = 0; i < 4; i++){
-                    for(var j = 0; j < 4; j++){
-                        var pushInArray = 0;
-                        if(theCells[i][j]){
-                            pushInArray = theCells[i][j].value;
-                        }
-                        theInput.push(pushInArray);
-                    }
-                }
-
-                // var res = G[_index].compute(theInput)[0];
-
-                // res *= 4;
-                // if(res >=0 && res <1 ){
-                //     _win.G2048.move(0);
-                // }
-                // if(res >=1 && res <2 ){
-                //     _win.G2048.move(1);
-                // }
-                // if(res >=2 && res <3 ){
-                //     _win.G2048.move(2);
-                // }
-                // if(res >=3 && res <4 ){
-                //     _win.G2048.move(3);
-                // }
-
-                var res = G[_index].compute(theInput);
-                var resObjList = [];
-                for(var i = 0; i < res.length; i++){
-                    resObjList.push({index: i, value: res[i]});
-                }
-                resObjList.sort(function (a, b)
-                {
-                    if(a.value > b.value){
-                        return false;
-                    }
-                    return true;
-                })
-                _win.G2048.move(resObjList[0].index);
-                
-
-                if(lastInputString[_index] == JSON.stringify(theInput)){
-                    // G_deaded[_index] = 1;
-                    G_deaded[_index] = 2;
-                }
-
-                if(_win.G2048.serialize().over){
-                    G_deaded[_index] = 2;
-                }
-
-                lastInputString[_index] = JSON.stringify(theInput);
-
-            }
+            allDead = !!G_deaded[_index];
         });
-        if(isAllDead()){
-            clearInterval(frameLoopHL);
-            /**
-             * 
-             */
-            setTimeout(function ()
+        return allDead;
+    }
+
+    var frameLoopHL = 0;
+    function startAIFrame()
+    {
+        frameLoopHL = setInterval(function ()
+        {
+            eachIframe(function (_win, _index)
             {
-                eachIframe(function (_win, _index){
+                if(!G_deaded[_index]){
                     var theCells = _win.G2048.grid.cells;
+                    
                     var theInput = [];
                     for(var i = 0; i < 4; i++){
                         for(var j = 0; j < 4; j++){
@@ -136,32 +75,94 @@ function startAIFrame()
                             theInput.push(pushInArray);
                         }
                     }
-                    theInput.sort();
-                    Neuvol.networkScore(G[_index], theInput.pop());
-                    // Neuvol.networkScore(G[_index], _win.G2048.serialize().score);
-                    if(G_deaded[_index] == 2){
-                        _win.G2048.restart();
+
+                    // var res = G[_index].compute(theInput)[0];
+
+                    // res *= 4;
+                    // if(res >=0 && res <1 ){
+                    //     _win.G2048.move(0);
+                    // }
+                    // if(res >=1 && res <2 ){
+                    //     _win.G2048.move(1);
+                    // }
+                    // if(res >=2 && res <3 ){
+                    //     _win.G2048.move(2);
+                    // }
+                    // if(res >=3 && res <4 ){
+                    //     _win.G2048.move(3);
+                    // }
+
+                    var res = G[_index].activate(theInput);
+                    var resObjList = [];
+                    for(var i = 0; i < res.length; i++){
+                        resObjList.push({index: i, value: res[i]});
                     }
-                });
-                G = Neuvol.nextGeneration();
+                    resObjList.sort(function (a, b)
+                    {
+                        if(a.value > b.value){
+                            return false;
+                        }
+                        return true;
+                    })
+                    console.log(resObjList);
+                    _win.G2048.move(resObjList[0].index);
+                    
 
-                // var savingData = [];
-                // for(var i = 0; i < G.length; i++){
-                //     savingData.push(G[i].getSave());
-                // }
-                // localStorage.setItem(ProjectName, JSON.stringify(savingData));
-                
-                G_deaded = [];
-                lastInputString = [];
-                generationCount ++;
-                console.log("第" + generationCount + "代");
-                startAIFrame();
-            },300);
-        }
-    },100)
-}
+                    if(lastInputString[_index] == JSON.stringify(theInput)){
+                        // G_deaded[_index] = 1;
+                        G_deaded[_index] = 2;
+                    }
 
-setTimeout(function (){
+                    if(_win.G2048.serialize().over){
+                        G_deaded[_index] = 2;
+                    }
+
+                    lastInputString[_index] = JSON.stringify(theInput);
+
+                }
+            });
+            if(isAllDead()){
+                clearInterval(frameLoopHL);
+                /**
+                 * 
+                 */
+                setTimeout(function ()
+                {
+                    eachIframe(function (_win, _index){
+                        var theCells = _win.G2048.grid.cells;
+                        var theInput = [];
+                        for(var i = 0; i < 4; i++){
+                            for(var j = 0; j < 4; j++){
+                                var pushInArray = 0;
+                                if(theCells[i][j]){
+                                    pushInArray = theCells[i][j].value;
+                                }
+                                theInput.push(pushInArray);
+                            }
+                        }
+                        theInput.sort();
+                        G[_index].propagate(0.3, 
+                            [
+                                theInput.pop() * _win.G2048.serialize().score,
+                                theInput.pop() * _win.G2048.serialize().score,
+                                theInput.pop() * _win.G2048.serialize().score,
+                                theInput.pop() * _win.G2048.serialize().score
+                            ]
+                        );
+                        if(G_deaded[_index] == 2){
+                            _win.G2048.restart();
+                        }
+                    });
+                    
+                    G_deaded = [];
+                    lastInputString = [];
+                    generationCount ++;
+                    console.log("第" + generationCount + "代");
+                    startAIFrame();
+                },300);
+            }
+        },100)
+    }
     var body = document.getElementsByTagName('body')[0];
     for(var i = 0; i < G.length; i++){
         var ifff = document.createElement('iframe');
