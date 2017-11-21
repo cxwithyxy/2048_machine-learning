@@ -3,7 +3,7 @@ var ProjectName = 'Neuroevolution_2048';
 
 var Neuvol = new Neuroevolution({
     population:50,
-    network:[16, [14], 4]
+    network:[16, [14, 14, 14, 14], 4]
 });
 
 var generationCount = 0;
@@ -125,20 +125,20 @@ function startAIFrame()
             setTimeout(function ()
             {
                 eachIframe(function (_win, _index){
-                    // var theCells = _win.G2048.grid.cells;
-                    // var theInput = [];
-                    // for(var i = 0; i < 4; i++){
-                    //     for(var j = 0; j < 4; j++){
-                    //         var pushInArray = 0;
-                    //         if(theCells[i][j]){
-                    //             pushInArray = theCells[i][j].value;
-                    //         }
-                    //         theInput.push(pushInArray);
-                    //     }
-                    // }
-                    // theInput.sort();
-                    // Neuvol.networkScore(G[_index], theInput.pop());
-                    Neuvol.networkScore(G[_index], _win.G2048.serialize().score);
+                    var theCells = _win.G2048.grid.cells;
+                    var theInput = [];
+                    for(var i = 0; i < 4; i++){
+                        for(var j = 0; j < 4; j++){
+                            var pushInArray = 0;
+                            if(theCells[i][j]){
+                                pushInArray = theCells[i][j].value;
+                            }
+                            theInput.push(pushInArray);
+                        }
+                    }
+                    theInput.sort();
+                    Neuvol.networkScore(G[_index], theInput.pop());
+                    // Neuvol.networkScore(G[_index], _win.G2048.serialize().score);
                     if(G_deaded[_index] == 2){
                         _win.G2048.restart();
                     }
