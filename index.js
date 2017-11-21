@@ -97,7 +97,8 @@ setTimeout(function (){
                     
 
                     if(lastInputString[_index] == JSON.stringify(theInput)){
-                        G_deaded[_index] = 1;
+                        // G_deaded[_index] = 1;
+                        G_deaded[_index] = 2;
                     }
 
                     if(_win.G2048.serialize().over){
@@ -116,7 +117,20 @@ setTimeout(function (){
                 setTimeout(function ()
                 {
                     eachIframe(function (_win, _index){
-                        Neuvol.networkScore(G[_index], _win.G2048.serialize().score);
+                        var theCells = _win.G2048.grid.cells;
+                        var theInput = [];
+                        for(var i = 0; i < 4; i++){
+                            for(var j = 0; j < 4; j++){
+                                var pushInArray = 0;
+                                if(theCells[i][j]){
+                                    pushInArray = theCells[i][j].value;
+                                }
+                                theInput.push(pushInArray);
+                            }
+                        }
+                        theInput.sort();
+                        Neuvol.networkScore(G[_index], theInput.pop());
+                        // Neuvol.networkScore(G[_index], _win.G2048.serialize().score);
                         if(G_deaded[_index] == 2){
                             _win.G2048.restart();
                         }
